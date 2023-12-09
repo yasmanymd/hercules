@@ -57,9 +57,10 @@ services:
     container_name: hercules-nginx
     image: nginx:latest
     ports:
-      - "80:80"
+      - "443:443"
     volumes:
-      - ./nginx:/etc/nginx/conf.d
+      - ~/certs:/root/ssl
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
 
 volumes:
   hercules-postgres-data:
