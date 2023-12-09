@@ -55,12 +55,11 @@ services:
 
   hercules-nginx:
     container_name: hercules-nginx
-    build:
-      context: ./nginx
+    image: nginx:latest
     ports:
-      - '4000:80'
-    expose:
-      - '4000'
+      - "80:80"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
 
 volumes:
   hercules-postgres-data:
