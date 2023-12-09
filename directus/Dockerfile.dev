@@ -1,0 +1,18 @@
+# syntax=docker/dockerfile:1
+
+FROM directus/directus:10.8.2
+ARG NEW_RELIC_LICENSE_KEY
+ARG NEW_RELIC_APP_NAME
+ENV NEW_RELIC_LICENSE_KEY=$NEW_RELIC_LICENSE_KEY
+ENV NEW_RELIC_APP_NAME=$NEW_RELIC_APP_NAME  
+WORKDIR /directus
+USER root
+COPY . .
+RUN npm install
+RUN chown node:node -R /directus &&\
+    chmod 755  -R /directus 
+EXPOSE 8055
+ENV EXTENSIONS_PATH=/directus/extensions
+ENV NEW_RELIC_NO_CONFIG_FILE=true
+USER node
+CMD ["/bin/sh", "/directus/start-dev.sh"]

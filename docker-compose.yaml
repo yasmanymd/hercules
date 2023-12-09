@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  hercules-postgres:
+    container_name: hercules-postgres
+    platform: linux/amd64
+    image: postgis/postgis:16-3.4-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - hercules-postgres-data:/var/lib/postgresql
+
+  hercules-dbgate:
+    container_name: hercules-dbgate
+    image: dbgate/dbgate
+    restart: always
+    ports:
+      - 8082:3000
+    volumes:
+      - hercules-dbgate-data:/root/.dbgate
+    environment:
+      CONNECTIONS: con1
+
+      LABEL_con1: Directus_PG
+      SERVER_con1: hercules-postgres
+      USER_con1: ${DB_USER}
+      PASSWORD_con1: ${DB_PASSWORD}
+      PORT_con1: ${DB_PORT}
+      ENGINE_con1: postgres@dbgate-plugin-postgres
+
+  hercules-cache:
+    container_name: hercules-cache
+    image: redis:7.0-alpine
+
+  hercules-directus:
+    container_name: hercules-directus
+    platform: linux/amd64
+    build:
+      context: ./directus
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    ports:
+      - 9055:8055
+    volumes:
+      - ./directus/uploads:/directus/uploads
+      - ./directus/src/schema:/directus/src/schema
+      - ./directus/src/extensions:/directus/extensions
+    depends_on:
+      - hercules-cache
+      - hercules-postgres
+    env_file:
+      - .env
+
+  hercules-nginx:
+    container_name: hercules-nginx
+    build:
+      context: ./nginx
+    ports:
+      - '4000:80'
+    expose:
+      - '4000'
+
+volumes:
+  hercules-postgres-data:
+  hercules-dbgate-data:
